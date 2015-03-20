@@ -29,7 +29,7 @@ int main( int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   /* Number of random numbers per processor (this should be increased
-   * for actual tests or could be made a passed in through the command line */
+   * for actual tests or could be passed in through the command line */
   N = 100;
 
   vec = calloc(N, sizeof(int));
@@ -48,19 +48,22 @@ int main( int argc, char *argv[])
    * i.e., every N/P-th entry of the sorted vector */
 
   /* every processor communicates the selected entries
-   * to the root processor */
+   * to the root processor; use for instance an MPI_Gather */
 
-  /* root processor does a sort, determinates splitters and broadcasts them */
+  /* root processor does a sort, determinates splitters that
+   * split the data into P buckets of approximately the same size */
 
-  /* every processor uses the obtained splitters to decide to send
-   * which integers to whom */
+  /* root process broadcasts splitters */
+
+  /* every processor uses the obtained splitters to decide
+   * which integers need to be sent to which other processor (local bins) */
 
   /* send and receive: either you use MPI_AlltoallV, or
    * (and that might be easier), use an MPI_Alltoall to share
    * with every processor how many integers it should expect,
    * and then use MPI_Send and MPI_Recv to exchange the data */
 
-  /* local sort */
+  /* do a local sort */
 
   /* every processor writes its result to a file */
 
