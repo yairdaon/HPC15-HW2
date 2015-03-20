@@ -1,7 +1,8 @@
 /******************************************************************************
 * FILE: mpi_bug3.c
 * DESCRIPTION: 
-*   This program has a bug. 
+*   This program has a bug.
+*  Hint: The MPI environment isn't initialized and terminated properly.
 * SOURCE: Blaise Barney 
 * LAST REVISED: 04/13/05
 ******************************************************************************/

@@ -5,6 +5,9 @@
 *   platform and MPI library
 * AUTHOR: Blaise Barney 
 * LAST REVISED: 01/24/09
+* Hint: If possible, try to run the program on two different machines,
+* which are connected through a network. You should see uneven timings;
+* try to understand/explain them.
 ******************************************************************************/
 #include "mpi.h"
 #include <stdio.h>
