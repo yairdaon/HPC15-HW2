@@ -1,0 +1,8 @@
+<<<<<<< HEAD
+# homework2
+
+Examples for Homework #2. The mpi_bug*.c files contain MPI bugs. The file ssort.c is a stub for parallel sample sort. 
+=======
+# HPC15-HW2
+homework 2
+>>>>>>> ed056c402079f37e8205a18ab06bb61d3c1da2ec
