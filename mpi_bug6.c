@@ -15,8 +15,9 @@
 #define REPS 1000
 #define DISP 100
 
-int main (int argc, char *argv[])
+int main (int argc, char *argv[]) 
 {
+
 int numtasks, rank, buf, tag1=1, i, rc, dest, src, offset, nreqs;
 double T1, T2;
 MPI_Request reqs[REPS*2];

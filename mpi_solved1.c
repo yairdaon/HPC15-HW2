@@ -27,25 +27,27 @@ if (rank == 0) {
   
   dest = rank + 1;
   source = dest;
-  //tag = rank; Just use same tag for every message
+  tag = rank; 
   
   rc = MPI_Send(&outmsg, 1, MPI_CHAR, dest, tag , MPI_COMM_WORLD);
   printf("Sent to task %d...\n",dest);
 
-  rc = MPI_Recv(&inmsg, 1, MPI_CHAR, source, 999, MPI_COMM_WORLD, &Stat);
+  rc = MPI_Recv(&inmsg, 1, MPI_CHAR, source, rank+1, MPI_COMM_WORLD, &Stat);
   printf("Received from task %d...\n",source);
+
+  //The bug: Each task sends expects to receive a tag that equals its rank.
   }
 
 else if (rank == 1) {
   
   dest = rank - 1;
   source = dest;
-  //tag = rank; As above
+  tag = rank;
  
-  rc = MPI_Recv(&inmsg, 1, MPI_CHAR, source, 999, MPI_COMM_WORLD, &Stat);
+  rc = MPI_Recv(&inmsg, 1, MPI_CHAR, source, rank-1, MPI_COMM_WORLD, &Stat);
   printf("Received from task %d...\n",source);
   
-  rc = MPI_Send(&outmsg, 1, MPI_CHAR, dest, 999, MPI_COMM_WORLD);
+  rc = MPI_Send(&outmsg, 1, MPI_CHAR, dest, tag, MPI_COMM_WORLD);
   printf("Sent to task %d...\n",dest);
   }
 
