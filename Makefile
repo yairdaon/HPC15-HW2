@@ -70,3 +70,7 @@ mpi_solved6: mpi_solved6.c
 clean:
 	rm -rf $(EXECUTABLES)
 	rm -vf *~
+
+push:
+	git push https://github.com/yairdaon/HPC15-HW2.git
+	
