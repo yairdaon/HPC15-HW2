@@ -1,10 +1,9 @@
-EXECUTABLES = mpi_solved1 mpi_solved2 mpi_solved3 mpi_solved4 mpi_solved5 # 
+EXECUTABLES = mpi_solved1 mpi_solved2 mpi_solved3 mpi_solved4 mpi_solved5 mpi_solved6  
 COMPILER = mpicc #mpicc-openmpi-mp
 FLAGS = -O3 -Wall
 
 # make all
 all: $(EXECUTABLES)
-	
 
 # problem 1
 mpi_solved1: mpi_solved1.c
@@ -64,6 +63,22 @@ mpi_solved6: mpi_solved6.c
 	mpirun -np 4 ./mpi_solved6  
 
 
+mpi_bug6: mpi_bug6.c
+	$(COMPILER) $(FLAGS) mpi_bug6.c -o mpi_bug6
+
+66: mpi_bug6
+	clear
+	mpirun -np 4 ./mpi_bug6  
+
+
+
+
+# sort problem
+sort: ssort.c
+	$(COMPILER) $(FLAGS) ssort.c -o sort
+
+run: sort
+	mpirun -np 4 -hosts box567,box571 ./sort
 
 
 # clean up
@@ -73,4 +88,3 @@ clean:
 
 push:
 	git push https://github.com/yairdaon/HPC15-HW2.git
-	
