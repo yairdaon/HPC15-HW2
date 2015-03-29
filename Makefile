@@ -78,7 +78,7 @@ sort: ssort.c
 	$(COMPILER) $(FLAGS) ssort.c -o sort
 
 run: sort
-	mpirun -np 4 -hosts box567,box571 ./sort
+	mpirun -np 4 ./sort
 
 
 # clean up

@@ -23,9 +23,9 @@ int main( int argc, char *argv[]) {
 
   /* Number of random numbers per processor (this should be increased
    * for actual tests or could be passed in through the command line */
-  int locDataSize =  10; // set originally to N = 100
+  int locDataSize =  100; // set originally to N = 100
 
-  locData = calloc(locDataSize, sizeof(int));
+  locData = calloc(locDataSize , sizeof(int));
   
   /* seed random number generator differently on every core */
   srand((unsigned int) (rank + 393919));
@@ -46,7 +46,7 @@ int main( int argc, char *argv[]) {
    * i.e., every N/P-th entry of the sorted vector */
 
   // number of splitters
-  int nSplitters = 5;
+  int nSplitters = 100;
   int jump = locDataSize/nSplitters;
   
   //create array of splitters
@@ -57,7 +57,6 @@ int main( int argc, char *argv[]) {
 
   // print local data to screen (TEST) 
   if ( rank == ROOT ) {
-    
     printf("Local data of %d:\n" , rank);
     for(i = 0 ; i < locDataSize ; i++ ) {
       printf("locData[%d] =  %d\n", i, locData[i]);
@@ -67,7 +66,6 @@ int main( int argc, char *argv[]) {
       printf("splitters[%d] =  %d\n", i, splitters[i]);
     }
     printf("\n\n");
-
   }    
 
 
@@ -127,13 +125,12 @@ int main( int argc, char *argv[]) {
   qsort(rootData, rootDataSize , sizeof(int), compare);
   
   // print sorted splitters at root  (TEST)
-  if ( rank == ROOT  ) {
+  if ( rank == ROOT ) {
     printf("The sorted splitters at the root are:\n");
     for(i = 0 ; i < rootDataSize ; i++ ) {
-      printf("rootData[%d] =  %d\n", i, rootData[i]);
+      printf("rootData[%d] = %d\n", i, rootData[i]);
     }
     printf("\n\n");
-
   } 
    
   // the number of splitters in the list of the root
@@ -149,7 +146,7 @@ int main( int argc, char *argv[]) {
   }
 
   // print the start\endpoints of buckets to screen (TEST)
-  if ( rank == ROOT  ) {
+  if ( rank == ROOT ) {
     printf("Buckets are between the following points:\n");
     for(i = 0 ; i < rootNumSplitters ; i++ ) {
       printf("rootSplitters[%d] =  %d\n", i, rootSplitters[i]);
@@ -240,8 +237,7 @@ int main( int argc, char *argv[]) {
 
   
   // print the buckets endpoints (TEST)
-  if ( rank == TARGET  ) {
-    
+  //if ( rank == ROOT  ) {
     /*
     printf("Processor %d has data :\n", rank);
     for(i = 0 ; i < locDataSize ; i++ ) {
@@ -250,15 +246,11 @@ int main( int argc, char *argv[]) {
     printf("\n\n");
     */
 
-    printf("Processor %d uses the following indices :\n", rank);    
     for( i = 0;  i < nTasks ; i++) {
-      printf("To processor %d send from %d up to %d\n", i, indices[2*i], indices[2*i+1] );
+      printf("%d -> %d : %d to %d\n",rank, i, indices[2*i], indices[2*i+1] );
     }
-    printf("\n\n");
-
-
-
-  }    
+    //printf("\n\n");
+    //}    
 
 
 
@@ -291,13 +283,12 @@ int main( int argc, char *argv[]) {
 
   
   // print what a processor needs to get (TEST)
-  if ( rank == TARGET  ) {
-    printf("Processor %d uses the following indices :\n", rank);
+  //if ( rank == TARGET  ) {
     for(i = 0 ; i < nTasks ; i++ ) {
-      printf("From processor %d take from %d to %d\n", i, gatheredIndices[2*i], gatheredIndices[2*i+1] );
+      printf("%d ->  %d : %d to %d\n", i, rank, gatheredIndices[2*i], gatheredIndices[2*i+1] );
     }
-    printf("\n\n");
-  }    
+    //printf("\n\n");
+    //}    
 
 
   // calculate memory to be allocated:
@@ -313,8 +304,10 @@ int main( int argc, char *argv[]) {
 
   // allocate the memory
   int * gatheredData = calloc(gatheredDataSize , sizeof(int));
-  MPI_Request reqs[4];
-  MPI_Status stats[4];
+  MPI_Request sendReqs[4];
+  MPI_Status sendStats[4];
+  MPI_Request recReqs[4];
+  MPI_Status recStats[4];
   
 
   int * sendStart; // pointer to the start of a send buffer
@@ -326,39 +319,44 @@ int main( int argc, char *argv[]) {
   // the sends and receives
   for( i = 0 ; i < nTasks ; i++) {
 
-    sendStart = locData+indices[2*i];
+    sendStart = &locData[ indices[2*i] ];
     sendCount = indices[2*i+1] - indices[2*i] + 1; 
 
     // syntax
     /*MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,
       MPI_Comm comm, MPI_Request *request)*/
-    MPI_Isend(sendStart, sendCount, MPI_INT, i, rank, MPI_COMM_WORLD ,&reqs[i] );
+    MPI_Isend(sendStart, sendCount, MPI_INT, i, rank, MPI_COMM_WORLD ,&sendReqs[i] );
 
 
 
-    recStart = gatheredData +  gatheredIndices[2*i];
+    recStart = &gatheredData[ gatheredIndices[2*i] ];
     recCount = gatheredIndices[2*i+1] - gatheredIndices[2*i] + 1;
 
     // syntax
     /*MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
       MPI_Comm comm, MPI_Status *status)*/
-    MPI_Recv(recStart, recCount, MPI_INT, i, i, MPI_COMM_WORLD, &stats[i]);
+    MPI_Irecv(recStart, recCount, MPI_INT, i, i, MPI_COMM_WORLD, &recReqs[i]);
   }
   
 
-  MPI_Waitall(4, reqs, stats);
-
+  MPI_Waitall(4, sendReqs, sendStats);
+  MPI_Waitall(4, recReqs , recStats );
+  MPI_Barrier(MPI_COMM_WORLD);
   //printf("Processor %d finished sending and receiveing!!!\n" , rank);
 
     
   /* do a local sort */
-  qsort(gatheredData, gatheredDataSize , sizeof(int), compare);
+  //qsort(gatheredData, gatheredDataSize , sizeof(int), compare);
   
   // print the data at some node (TEST)
   if ( rank == 2 ) {
     printf("Data at %d:\n", rank);
-    for ( i = 0 ; i < gatheredDataSize ; i++ ){
-      printf("%d\n" , gatheredData[i]);
+    for ( j = 0 ; j <nTasks ; j++) {
+      int start = indices[2*j];
+      int end   = indices[2*j+1];
+      for ( i = start ; i <= end ; i++ ){
+	printf("From %d: gatheredData[%d] = %d\n" ,j, i,  gatheredData[i]);
+      }
     }
   }
 
